@@ -50,11 +50,11 @@ async function runSchema() {
   console.log(`📝 Found ${statements.length} SQL statements to execute\n`);
   console.log('⚠️  Note: This will use the anon key which has limited permissions.');
   console.log('   For full schema setup, please run the SQL in Supabase Dashboard.\n');
-  console.log('🔗 Dashboard: https://supabase.com/dashboard/project/wcbounpetrnmbsliqozg/sql\n');
+  console.log('🔗 Dashboard: https://supabase.com/dashboard (your project > SQL Editor)\n');
 
   // Try to verify connection
   console.log('🔍 Verifying connection...');
-  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  const { error: sessionError } = await supabase.auth.getSession();
   
   if (sessionError) {
     console.error('❌ Connection error:', sessionError.message);
@@ -70,7 +70,7 @@ async function runSchema() {
   let allTablesExist = true;
 
   for (const table of tables) {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from(table)
       .select('*')
       .limit(1);
@@ -96,7 +96,7 @@ async function runSchema() {
   } else {
     console.log('⚠️  Some tables are missing.');
     console.log('\n📝 To create the tables, please:');
-    console.log('1. Go to: https://supabase.com/dashboard/project/wcbounpetrnmbsliqozg/sql');
+    console.log('1. Go to: https://supabase.com/dashboard (your project > SQL Editor)');
     console.log('2. Copy the content from: supabase/schema.sql');
     console.log('3. Paste it in the SQL Editor');
     console.log('4. Click "Run"\n');

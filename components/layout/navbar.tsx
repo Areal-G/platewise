@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { IoFastFood } from "react-icons/io5";
+import { Logo } from "@/components/brand/logo";
 import { useState, useEffect } from "react";
 
 export function Navbar() {
@@ -33,12 +33,7 @@ export function Navbar() {
             href="/"
             className="flex items-center gap-2.5 font-bold text-xl transition-all hover:scale-105"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 shadow-md shadow-orange-500/30">
-              <IoFastFood className="h-5 w-5 text-white" />
-            </div>
-            <span className="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-              Platewise
-            </span>
+            <Logo markClassName="shadow-md shadow-orange-500/30 rounded-xl" />
           </Link>
 
           <div className="flex items-center gap-3">

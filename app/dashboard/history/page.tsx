@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { LoadError } from "@/components/dashboard/load-error";
 import { Button } from "@/components/ui/button";
 import { Eye, RefreshCw, Loader2, CheckCircle, XCircle, Clock } from "lucide-react";
 import { format } from "date-fns";
@@ -20,14 +22,16 @@ interface HistoryItem {
 export default function HistoryPage() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [filter, setFilter] = useState("all");
-
-  useEffect(() => {
-    fetchHistory();
-  }, [filter]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const ITEMS_PER_PAGE = 10;
+  const [stats, setStats] = useState({ total: 0, completed: 0, failed: 0 });
 
   const fetchHistory = async () => {
     setLoading(true);
+    setLoadError(null);
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -36,9 +40,22 @@ export default function HistoryPage() {
       return;
     }
 
+    // Stats cover all attempts, not just the current page
+    const [totalRes, completedRes, failedRes] = await Promise.all([
+      supabase.from('generation_history').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+      supabase.from('generation_history').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'completed'),
+      supabase.from('generation_history').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'failed'),
+    ]);
+
+    setStats({
+      total: totalRes.count || 0,
+      completed: completedRes.count || 0,
+      failed: failedRes.count || 0,
+    });
+
     let query = supabase
       .from('generation_history')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
@@ -46,13 +63,26 @@ export default function HistoryPage() {
       query = query.eq('status', filter);
     }
 
-    const { data, error } = await query;
+    // Add pagination
+    const from = (page - 1) * ITEMS_PER_PAGE;
+    const to = from + ITEMS_PER_PAGE - 1;
 
-    if (data) {
+    const { data, count, error } = await query.range(from, to);
+
+    if (error) {
+      setLoadError("We couldn't fetch your history. Check your connection and try again.");
+    } else if (data) {
       setHistory(data);
+      if (count) {
+        setTotalPages(Math.ceil(count / ITEMS_PER_PAGE));
+      }
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchHistory();
+  }, [filter, page]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -92,7 +122,7 @@ export default function HistoryPage() {
             </p>
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
-            <select 
+            <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               className="flex-1 sm:flex-none px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none"
@@ -102,8 +132,8 @@ export default function HistoryPage() {
               <option value="failed">Failed</option>
               <option value="pending">Pending</option>
             </select>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={fetchHistory}
               className="flex-shrink-0"
@@ -118,25 +148,25 @@ export default function HistoryPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <div className="bg-white rounded-lg border border-gray-200 p-3">
             <p className="text-xs text-gray-600">Total Attempts</p>
-            <p className="text-xl font-bold text-gray-900">{history.length}</p>
+            <p className="text-xl font-bold text-gray-900">{stats.total}</p>
           </div>
           <div className="bg-white rounded-lg border border-gray-200 p-3">
             <p className="text-xs text-gray-600">Completed</p>
             <p className="text-xl font-bold text-green-600">
-              {history.filter(h => h.status === 'completed').length}
+              {stats.completed}
             </p>
           </div>
           <div className="bg-white rounded-lg border border-gray-200 p-3">
             <p className="text-xs text-gray-600">Failed</p>
             <p className="text-xl font-bold text-red-600">
-              {history.filter(h => h.status === 'failed').length}
+              {stats.failed}
             </p>
           </div>
           <div className="bg-white rounded-lg border border-gray-200 p-3">
             <p className="text-xs text-gray-600">Success Rate</p>
             <p className="text-xl font-bold text-gray-900">
-              {history.length > 0 
-                ? Math.round((history.filter(h => h.status === 'completed').length / history.length) * 100)
+              {stats.total > 0
+                ? Math.round((stats.completed / stats.total) * 100)
                 : 0}%
             </p>
           </div>
@@ -147,6 +177,8 @@ export default function HistoryPage() {
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
           </div>
+        ) : loadError ? (
+          <LoadError message={loadError} onRetry={fetchHistory} />
         ) : history.length === 0 ? (
           <div className="text-center py-20">
             <div className="mx-auto h-24 w-24 rounded-2xl border-4 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center mb-4">
@@ -156,8 +188,8 @@ export default function HistoryPage() {
             <p className="text-sm text-gray-600 mb-4">
               Start generating images to see your history
             </p>
-            <Button onClick={() => window.location.href = '/dashboard'}>
-              Generate Your First Image
+            <Button asChild>
+              <Link href="/dashboard/generate">Generate Your First Image</Link>
             </Button>
           </div>
         ) : (
@@ -205,8 +237,8 @@ export default function HistoryPage() {
 
                   {/* Actions */}
                   {item.image_id && (
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => window.location.href = '/dashboard/gallery'}
                       className="w-full sm:w-auto flex-shrink-0"
@@ -218,6 +250,29 @@ export default function HistoryPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center gap-2 mt-8">
+            <Button
+              variant="outline"
+              disabled={page === 1}
+              onClick={() => setPage(p => p - 1)}
+            >
+              Previous
+            </Button>
+            <span className="flex items-center px-4 text-sm text-gray-600">
+              Page {page} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              disabled={page === totalPages}
+              onClick={() => setPage(p => p + 1)}
+            >
+              Next
+            </Button>
           </div>
         )}
       </div>

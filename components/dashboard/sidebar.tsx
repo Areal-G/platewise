@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { IoFastFood } from "react-icons/io5";
+import { usePathname } from "next/navigation";
+import { Logo } from "@/components/brand/logo";
 import {
   Home,
   Image,
@@ -13,16 +13,24 @@ import {
   Wand2,
   FileText,
   Megaphone,
+  Palette,
+  Package,
+  Camera,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { signout } from "@/app/(auth)/actions";
+import { exitDemo, isDemoMode } from "@/lib/demo";
+import type { User } from "@supabase/supabase-js";
 
 const navigation = [
-  { name: "Generate", href: "/dashboard", icon: Home },
+  { name: "Dashboard", href: "/dashboard", icon: Home },
+  { name: "Food Generator", href: "/dashboard/generate", icon: Camera },
   { name: "Enhance", href: "/dashboard/enhance", icon: Wand2 },
   { name: "Menu Maker", href: "/dashboard/menu", icon: FileText },
   { name: "Ad Posters", href: "/dashboard/posters", icon: Megaphone },
+  { name: "Logo Creator", href: "/dashboard/logo", icon: Palette },
+  { name: "Packaging", href: "/dashboard/packaging", icon: Package },
   { name: "Gallery", href: "/dashboard/gallery", icon: Image },
   { name: "History", href: "/dashboard/history", icon: History },
   { name: "Tips", href: "/dashboard/tips", icon: Lightbulb },
@@ -31,8 +39,7 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -48,8 +55,19 @@ export function Sidebar() {
   }, []);
 
   const handleSignOut = async () => {
+    if (isDemoMode()) {
+      exitDemo();
+      window.location.href = "/";
+      return;
+    }
     await signout();
   };
+
+  const tabBarRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const active = tabBarRef.current?.querySelector<HTMLElement>("[data-active]");
+    active?.scrollIntoView({ inline: "center", block: "nearest" });
+  }, [pathname]);
 
   const getInitials = (name: string) => {
     return name
@@ -66,12 +84,9 @@ export function Sidebar() {
       <div className="hidden md:flex h-screen w-64 flex-col bg-white border-r border-gray-200">
         {/* Logo */}
         <div className="flex h-16 items-center gap-2.5 px-6 border-b border-gray-200">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 shadow-md shadow-orange-500/30">
-            <IoFastFood className="h-5 w-5 text-white" />
-          </div>
-          <span className="font-bold text-xl text-orange-600 cursive-text">
-            Platewise
-          </span>
+          <Link href="/dashboard">
+            <Logo markClassName="shadow-md shadow-orange-500/30 rounded-xl" />
+          </Link>
         </div>
 
         {/* Navigation */}
@@ -143,8 +158,13 @@ export function Sidebar() {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
-        <nav className="flex justify-around items-center h-16 px-2">
+      {/* Eleven tools cannot share a phone's width, so the bar scrolls
+          sideways and keeps the current tool in view. */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 pb-[env(safe-area-inset-bottom)]">
+        <nav
+          ref={tabBarRef}
+          className="flex h-16 snap-x items-center gap-1 overflow-x-auto px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
           {navigation.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
@@ -152,13 +172,15 @@ export function Sidebar() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors ${isActive
+                data-active={isActive || undefined}
+                aria-current={isActive ? "page" : undefined}
+                className={`flex min-w-[4.75rem] shrink-0 snap-start flex-col items-center justify-center gap-1 px-2 py-2 rounded-lg transition-colors ${isActive
                   ? "text-orange-600"
                   : "text-gray-600 hover:text-gray-900"
                   }`}
               >
                 <Icon className="h-5 w-5" />
-                <span className="text-xs font-medium">{item.name}</span>
+                <span className="whitespace-nowrap text-[11px] font-medium">{item.name}</span>
               </Link>
             );
           })}

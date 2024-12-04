@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Play, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
 import { RiGeminiLine } from "react-icons/ri";
 import {
   GiHotMeal,
@@ -12,10 +12,17 @@ import {
   GiPizzaSlice,
   GiHamburger,
 } from "react-icons/gi";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { enterDemo } from "@/lib/demo";
 
 export function LandingHero() {
-  const [showVideo, setShowVideo] = useState(false);
+  const router = useRouter();
+
+  // Drop visitors into a read-only dashboard with sample data
+  const openDemo = () => {
+    enterDemo();
+    router.push("/dashboard");
+  };
 
   return (
     <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 pt-20">
@@ -44,16 +51,16 @@ export function LandingHero() {
 
         {/* Main heading */}
         <h1 className="mb-8 text-5xl font-bold leading-tight tracking-tight sm:text-6xl md:text-7xl">
-          Your Menu Deserves
+          Your All-in-One
           <br />
           <span className="relative bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 bg-clip-text text-transparent cursive-text">
-            Better Photos
+            Restaurant Design Studio
           </span>
         </h1>
 
         <p className="mx-auto mb-12 max-w-2xl text-lg leading-relaxed text-gray-600 sm:text-xl">
-          Turn simple menu descriptions into mouth-watering visuals with AI. No
-          camera, no photographer, just stunning food images in seconds.
+          Create stunning food photos, menus, logos, and marketing materials with AI.
+          No camera, no designer, just professional results in seconds.
         </p>
 
         {/* CTA Buttons */}
@@ -71,10 +78,10 @@ export function LandingHero() {
             size="lg"
             variant="outline"
             className="h-12 gap-2 px-8 text-base font-semibold"
-            onClick={() => setShowVideo(true)}
+            onClick={openDemo}
           >
-            <Play className="h-4 w-4" />
-            Watch Demo
+            <Sparkles className="h-4 w-4" />
+            Try Live Demo
           </Button>
         </div>
 
@@ -95,54 +102,6 @@ export function LandingHero() {
         </div>
       </div>
 
-      {/* Video Popup Modal */}
-      {showVideo && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-          onClick={() => setShowVideo(false)}
-        >
-          <div
-            className="relative w-full max-w-5xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close Button */}
-            <button
-              onClick={() => setShowVideo(false)}
-              className="absolute -top-12 right-0 text-white hover:text-orange-500 transition-colors"
-            >
-              <svg
-                className="h-8 w-8"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-
-            {/* Video Container */}
-            <div className="relative overflow-hidden rounded-2xl border-4 border-orange-500 bg-black shadow-2xl">
-              <div
-                className="relative w-full"
-                style={{ paddingBottom: "56.25%" }}
-              >
-                <iframe
-                  className="absolute inset-0 h-full w-full"
-                  src="https://www.youtube.com/embed/ShQpK5DB8sg?autoplay=1&vq=hd1080&quality=hd1080&hd=1&rel=0&modestbranding=1"
-                  title="Platewise Demo Video"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 }

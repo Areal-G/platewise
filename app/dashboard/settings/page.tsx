@@ -14,11 +14,12 @@ import {
   Trash2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { exitDemo, guardDemo, isDemoMode } from "@/lib/demo";
 import { signout } from "@/app/(auth)/actions";
+import type { User as AuthUser } from "@supabase/supabase-js";
 
 export default function SettingsPage() {
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -28,20 +29,17 @@ export default function SettingsPage() {
   const [apiKey, setApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
 
-  useEffect(() => {
-    fetchUserData();
-    // Load API key from localStorage
-    const savedApiKey = localStorage.getItem("gemini_api_key");
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
-    }
-  }, []);
-
   const fetchUserData = async () => {
     const supabase = createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
+
+    // The Gemini key is stored only in this browser
+    const savedApiKey = localStorage.getItem("gemini_api_key");
+    if (savedApiKey) {
+      setApiKey(savedApiKey);
+    }
 
     if (user) {
       setUser(user);
@@ -55,17 +53,19 @@ export default function SettingsPage() {
         .eq("id", user.id)
         .single();
 
-      if (profileData) {
-        setProfile(profileData);
-        if (profileData.full_name) {
-          setFullName(profileData.full_name);
-        }
+      if (profileData?.full_name) {
+        setFullName(profileData.full_name);
       }
     }
     setLoading(false);
   };
 
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
   const handleSaveApiKey = () => {
+    if (guardDemo()) return;
     if (apiKey.trim()) {
       localStorage.setItem("gemini_api_key", apiKey.trim());
     } else {
@@ -75,12 +75,14 @@ export default function SettingsPage() {
   };
 
   const handleClearApiKey = () => {
+    if (guardDemo()) return;
     setApiKey("");
     localStorage.removeItem("gemini_api_key");
     alert("API key cleared!");
   };
 
   const handleSave = async () => {
+    if (guardDemo() || !user) return;
     setSaving(true);
     setSaved(false);
 
@@ -108,6 +110,11 @@ export default function SettingsPage() {
   };
 
   const handleSignOut = async () => {
+    if (isDemoMode()) {
+      exitDemo();
+      window.location.href = "/";
+      return;
+    }
     await signout();
   };
 

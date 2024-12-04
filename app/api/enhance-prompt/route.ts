@@ -1,5 +1,6 @@
-import { google } from "@ai-sdk/google";
+import { getAiContext, TEXT_MODEL } from "@/lib/ai";
 import { generateText } from "ai";
+import { getErrorMessage } from "@/lib/errors";
 
 export async function POST(req: Request) {
   try {
@@ -9,20 +10,18 @@ export async function POST(req: Request) {
       return Response.json({ error: "Prompt is required" }, { status: 400 });
     }
 
-    // Check for user's API key from header or use shared key
-    const userApiKey = req.headers.get("x-gemini-api-key");
-    const apiKey = userApiKey || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    const ctx = await getAiContext(req);
+    if (ctx.error) return ctx.error;
 
-    if (!apiKey) {
-      return Response.json(
-        { error: "API key not configured" },
-        { status: 500 }
-      );
+    if (!ctx.google) {
+      return Response.json({
+        enhancedPrompt: `${prompt}, beautifully plated on a rustic ceramic dish, garnished with fresh herbs, soft natural window light, shallow depth of field, 45-degree angle, warm inviting tones, restaurant-quality presentation`,
+        demo: true,
+      });
     }
 
-    // Use Vercel AI SDK with Gemini 2.0 Flash
     const { text } = await generateText({
-      model: google("gemini-3-pro-preview"),
+      model: ctx.google(TEXT_MODEL),
       prompt: `You are a professional food photography prompt engineer. Transform this simple menu item description into a detailed, professional prompt for AI image generation.
 
 Original description: "${prompt}"
@@ -41,10 +40,10 @@ Return ONLY the enhanced prompt, no explanations or additional text.`,
     });
 
     return Response.json({ enhancedPrompt: text.trim() });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error enhancing prompt:", error);
     return Response.json(
-      { error: error.message || "Failed to enhance prompt" },
+      { error: getErrorMessage(error, "Failed to enhance prompt") },
       { status: 500 }
     );
   }

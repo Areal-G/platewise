@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { IoFastFood } from "react-icons/io5";
+import { Logo } from "@/components/brand/logo";
 import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { login } from "../actions";
 import { CallbackHandler } from "./callback-handler";
+import { getErrorMessage } from "@/lib/errors";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -56,7 +57,7 @@ export default function LoginPage() {
       const supabase = createClient();
       
       const redirectUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${redirectUrl}/auth/callback`,
@@ -68,8 +69,8 @@ export default function LoginPage() {
         setLoading(false);
       }
       // If successful, browser will redirect to Google
-    } catch (err: any) {
-      setError(err.message || 'Failed to sign in with Google');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to sign in with Google'));
       setLoading(false);
     }
   };
@@ -99,10 +100,7 @@ export default function LoginPage() {
           href="/"
           className="flex items-center gap-2.5 font-bold text-xl text-white z-10"
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 shadow-md shadow-orange-500/30">
-            <IoFastFood className="h-6 w-6 text-white" />
-          </div>
-          <span>Platewise</span>
+          <Logo tone="light" markClassName="h-10 w-10" />
         </Link>
 
         {/* Main Content */}
@@ -283,7 +281,7 @@ export default function LoginPage() {
 
           {/* Sign Up Link */}
           <p className="text-center text-sm text-gray-600">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link
               href="/signup"
               className="text-orange-600 hover:text-orange-700 font-semibold"

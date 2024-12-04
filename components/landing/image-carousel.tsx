@@ -128,9 +128,10 @@ function DishCard({ name, image, color }: DishCardProps) {
 
 // Main ImageCarousel Component
 export function ImageCarousel() {
-  const plugin = React.useRef(
+  // Created once per mount; Embla keeps the plugin instance stable
+  const [autoScroll] = React.useState(() =>
     AutoScroll({
-      speed: 4, // increase speed for faster movement
+      speed: 4,
       stopOnInteraction: false,
       stopOnMouseEnter: false,
     })
@@ -148,7 +149,7 @@ export function ImageCarousel() {
   return (
     <section className="relative py-12 overflow-hidden bg-white">
       <div className="container mx-auto max-w-full">
-        <Carousel plugins={[plugin.current]} className="w-full" opts={options}>
+        <Carousel plugins={[autoScroll]} className="w-full" opts={options}>
           <CarouselContent className="-ml-3 md:-ml-4">
             {duplicatedImages.map((image, index) => (
               <CarouselItem

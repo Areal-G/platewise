@@ -1,5 +1,7 @@
-import { google } from "@ai-sdk/google";
+import { getAiContext, IMAGE_MODEL } from "@/lib/ai";
+import { demoImageUrl } from "@/lib/demo-images";
 import { generateText } from "ai";
+import { getErrorMessage } from "@/lib/errors";
 
 export async function POST(req: Request) {
   try {
@@ -9,13 +11,17 @@ export async function POST(req: Request) {
       return Response.json({ error: "Prompt is required" }, { status: 400 });
     }
 
-    // Check for API key
-    const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-    if (!apiKey) {
-      return Response.json(
-        { error: "API key not configured" },
-        { status: 500 }
-      );
+    const ctx = await getAiContext(req);
+    if (ctx.error) return ctx.error;
+
+    if (!ctx.google) {
+      return Response.json({
+        success: true,
+        demo: true,
+        prompt,
+        imageUrl: demoImageUrl(prompt, type),
+        message: "Demo image (no Gemini API key configured)",
+      });
     }
 
     // Style-specific enhancements with focus on close-up food photography
@@ -36,6 +42,10 @@ export async function POST(req: Request) {
       fullPrompt = `Professional restaurant menu design: ${prompt}. High resolution, clear typography, appetizing food elements integrated into the layout.`;
     } else if (type === "poster") {
       fullPrompt = `Professional advertising poster design: ${prompt}. High impact visual, clear text overlay, vibrant colors, commercial photography style.`;
+    } else if (type === "logo") {
+      fullPrompt = `Professional vector logo design: ${prompt}. Minimalist, clean lines, scalable, white background, high quality branding identity.`;
+    } else if (type === "packaging") {
+      fullPrompt = `Professional product packaging mockup: ${prompt}. Photorealistic 3D render, studio lighting, soft shadows, high quality product photography, clean background.`;
     } else {
       // Default "food" type
       const stylePrompt =
@@ -43,9 +53,8 @@ export async function POST(req: Request) {
       fullPrompt = `Close-up, detailed food photography: ${prompt}. ${stylePrompt}. Shot from a 45-degree angle, filling the frame with the food. The dish should be the main focus, highly detailed, mouth-watering, and professionally styled for a restaurant menu. Sharp focus on the food with beautiful bokeh background.`;
     }
 
-    // Use Gemini 2.5 Flash Image (Nano Banana) for image generation
     const result = await generateText({
-      model: google("gemini-3-pro-image-preview"),
+      model: ctx.google(IMAGE_MODEL),
       prompt: fullPrompt,
     });
 
@@ -74,11 +83,12 @@ export async function POST(req: Request) {
       { error: "No image was generated in the response" },
       { status: 500 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error generating image:", error);
 
     // Handle quota exceeded error
-    if (error.message?.includes("quota") || error.message?.includes("429")) {
+    const message = getErrorMessage(error, "");
+    if (message.includes("quota") || message.includes("429")) {
       return Response.json(
         {
           error: "API quota exceeded. Please wait a moment and try again.",
@@ -90,7 +100,7 @@ export async function POST(req: Request) {
     }
 
     return Response.json(
-      { error: error.message || "Failed to generate image" },
+      { error: getErrorMessage(error, "Failed to generate image") },
       { status: 500 }
     );
   }

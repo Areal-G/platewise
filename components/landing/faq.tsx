@@ -83,13 +83,10 @@ export function LandingFAQ() {
         {/* CTA Below FAQ */}
         <div className="mt-12 text-center">
           <p className="text-muted-foreground">
-            Still have questions?{" "}
-            <a
-              href="mailto:support@platewise.com"
-              className="font-medium text-orange-600 hover:text-orange-700 hover:underline"
-            >
-              Contact our support team
-            </a>
+            Still have questions? Reach us at{" "}
+            <span className="font-medium text-orange-600">
+              support@platewise.com
+            </span>
           </p>
         </div>
       </div>

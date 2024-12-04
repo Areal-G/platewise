@@ -1,10 +1,17 @@
 "use client";
 
-import { Play } from "lucide-react";
-import { useState } from "react";
+import { Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { enterDemo } from "@/lib/demo";
 
 export function LandingDemo() {
-  const [showVideo, setShowVideo] = useState(false);
+  const router = useRouter();
+
+  // Drop visitors into a read-only dashboard with sample data
+  const openDemo = () => {
+    enterDemo();
+    router.push("/dashboard");
+  };
 
   return (
     <section className="relative py-24 px-4 bg-gradient-to-b from-white via-orange-50/30 to-white">
@@ -19,8 +26,7 @@ export function LandingDemo() {
             in Action
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
-            Watch how easy it is to transform simple menu descriptions into
-            stunning, professional food photography
+            Step inside a sample restaurant account and explore the gallery, history, and every tool. No signup needed.
           </p>
         </div>
 
@@ -42,13 +48,14 @@ export function LandingDemo() {
               {/* Dark Overlay */}
               <div className="absolute inset-0 bg-black/20" />
 
-              {/* Play Button Overlay */}
+              {/* Demo Button Overlay */}
               <button
-                onClick={() => setShowVideo(true)}
+                onClick={openDemo}
                 className="absolute inset-0 flex items-center justify-center group cursor-pointer hover:bg-black/10 transition-colors"
               >
-                <div className="h-24 w-24 rounded-full bg-orange-500 flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
-                  <Play className="h-12 w-12 text-white fill-white ml-1" />
+                <div className="flex items-center gap-2 rounded-full bg-orange-500 px-7 py-4 text-lg font-semibold text-white shadow-2xl group-hover:scale-105 transition-transform">
+                  <Sparkles className="h-5 w-5" />
+                  Try Live Demo
                 </div>
               </button>
             </div>
@@ -59,60 +66,12 @@ export function LandingDemo() {
           <div className="absolute -bottom-4 -right-4 h-32 w-32 rounded-full bg-orange-500/10 blur-2xl" />
         </div>
 
-        {/* Video Popup Modal */}
-        {showVideo && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-            onClick={() => setShowVideo(false)}
-          >
-            <div
-              className="relative w-full max-w-5xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Close Button */}
-              <button
-                onClick={() => setShowVideo(false)}
-                className="absolute -top-12 right-0 text-white hover:text-orange-500 transition-colors"
-              >
-                <svg
-                  className="h-8 w-8"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-
-              {/* Video Container */}
-              <div className="relative overflow-hidden rounded-2xl border-4 border-orange-500 bg-black shadow-2xl">
-                <div
-                  className="relative w-full"
-                  style={{ paddingBottom: "56.25%" }}
-                >
-                  <iframe
-                    className="absolute inset-0 h-full w-full"
-                    src="https://www.youtube.com/embed/ShQpK5DB8sg?autoplay=1&vq=hd1080&quality=hd1080&hd=1&rel=0&modestbranding=1"
-                    title="Platewise Demo Video"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Optional: Video Stats or Features */}
+  
+        {/* Stats */}
         <div className="mt-12 grid gap-6 sm:grid-cols-3">
           <div className="text-center">
-            <div className="mb-2 text-3xl font-bold text-orange-600">2 min</div>
-            <p className="text-sm text-muted-foreground">Quick Demo</p>
+            <div className="mb-2 text-3xl font-bold text-orange-600">6 Tools</div>
+            <p className="text-sm text-muted-foreground">One Studio</p>
           </div>
           <div className="text-center">
             <div className="mb-2 text-3xl font-bold text-orange-600">

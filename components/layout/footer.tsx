@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { IoFastFood } from "react-icons/io5";
+import { Logo, LogoMark } from "@/components/brand/logo";
 import { Linkedin, Mail } from "lucide-react";
 import { FaXTwitter, FaInstagram } from "react-icons/fa6";
 
@@ -14,9 +14,7 @@ export function Footer() {
             <div className="w-full flex flex-col items-center">
               <div className="space-y-2 flex flex-col items-center flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-transparent bg-clip-text bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 text-3xl font-bold">
-                    Platewise
-                  </span>
+                  <Logo markClassName="h-10 w-10" textClassName="text-3xl" />
                 </div>
                 <p className="text-gray-700 font-semibold text-center sm:w-96">
                   AI-powered menu visualization for modern restaurants. Create
@@ -24,54 +22,30 @@ export function Footer() {
                 </p>
               </div>
               <div className="flex mb-8 mt-3 gap-4">
-                <Link
-                  href="https://linkedin.com"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <span className="text-muted-foreground" title="LinkedIn">
                   <Linkedin className="w-6 h-6 hover:text-orange-500 duration-300" />
                   <span className="sr-only">LinkedIn</span>
-                </Link>
-                <Link
-                  href="https://twitter.com"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                </span>
+                <span className="text-muted-foreground" title="X (Twitter)">
                   <FaXTwitter className="w-6 h-6 hover:text-orange-500 duration-300" />
                   <span className="sr-only">X (Twitter)</span>
-                </Link>
-                <Link
-                  href="https://instagram.com"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                </span>
+                <span className="text-muted-foreground" title="Instagram">
                   <FaInstagram className="w-6 h-6 hover:text-orange-500 duration-300" />
                   <span className="sr-only">Instagram</span>
-                </Link>
-                <Link
-                  href="mailto:contact@platewise.com"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
+                </span>
+                <span className="text-muted-foreground" title="contact@platewise.com">
                   <Mail className="w-6 h-6 hover:text-orange-500 duration-300" />
-                  <span className="sr-only">Email</span>
-                </Link>
+                  <span className="sr-only">contact@platewise.com</span>
+                </span>
               </div>
               <div className="flex flex-wrap gap-4 text-sm font-medium text-gray-500">
-                <Link
-                  className="hover:text-orange-500 duration-300 hover:font-semibold"
-                  href="/about"
-                >
+                <span className="hover:text-orange-500 duration-300 cursor-default">
                   About
-                </Link>
-                <Link
-                  className="hover:text-orange-500 duration-300 hover:font-semibold"
-                  href="/contact"
-                >
+                </span>
+                <span className="hover:text-orange-500 duration-300 cursor-default">
                   Contact
-                </Link>
+                </span>
                 <Link
                   className="hover:text-orange-500 duration-300 hover:font-semibold"
                   href="/privacy-policy"
@@ -92,25 +66,19 @@ export function Footer() {
               ©{new Date().getFullYear()} Platewise. All rights reserved.
             </p>
             <nav className="flex gap-4">
-              <Link
-                href="https://deepakmodi.tech"
-                target="_blank"
-                className="text-base text-muted-foreground hover:text-orange-500 transition-colors duration-300 hover:font-medium"
-              >
-                Crafted by Areal
-              </Link>
+              <span className="text-base text-muted-foreground">
+                Crafted by Areal J
+              </span>
             </nav>
           </div>
         </div>
         {/* Large background text */}
-        <div className="bg-gradient-to-b from-gray-900/20 via-gray-900/10 to-transparent bg-clip-text text-transparent text-[4rem] sm:text-[8rem] md:text-[10rem] lg:text-[13rem] leading-tight absolute left-1/2 -translate-x-1/2 bottom-40 md:bottom-32 z-10 font-extrabold tracking-tighter pointer-events-none">
-          MENU.VIZ
+        <div className="bg-gradient-to-b from-gray-900/20 via-gray-900/10 to-transparent bg-clip-text text-transparent text-[3.25rem] sm:text-[6.5rem] md:text-[8.5rem] lg:text-[11rem] leading-tight whitespace-nowrap absolute left-1/2 -translate-x-1/2 bottom-40 md:bottom-32 z-10 font-extrabold tracking-tighter pointer-events-none">
+          PLATEWISE
         </div>
         {/* Bottom logo */}
         <div className="absolute border-2 border-orange-400/50 flex items-center justify-center p-3 hover:border-orange-500 duration-400 hover:shadow-[0_0px_20px_rgba(249,115,22,0.4)] bottom-24 md:bottom-20 backdrop-blur-sm z-30 rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] bg-white/60 left-1/2 -translate-x-1/2 shadow-[0_0px_30px_rgba(249,115,22,0.3)]">
-          <div className="w-12 sm:w-16 md:w-24 h-12 sm:h-16 md:h-24 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl sm:rounded-3xl md:rounded-[2rem] flex items-center justify-center shadow-lg shadow-orange-500/50">
-            <IoFastFood className="w-8 sm:w-10 md:w-14 h-8 sm:h-10 md:h-14 text-white drop-shadow-lg" />
-          </div>
+          <LogoMark className="w-12 sm:w-16 md:w-24 h-12 sm:h-16 md:h-24 drop-shadow-lg" />
         </div>
         {/* Bottom line */}
         <div className="absolute bottom-32 sm:bottom-34 backdrop-blur-sm z-25 h-1 bg-gradient-to-r from-transparent via-orange-500/20 to-transparent w-full left-1/2 -translate-x-1/2"></div>

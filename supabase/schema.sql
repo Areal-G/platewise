@@ -2,7 +2,7 @@
 -- Platewise Database Schema
 -- ============================================
 -- Run this in Supabase SQL Editor
--- Dashboard: https://supabase.com/dashboard/project/wcbounpetrnmbsliqozg/sql
+-- Dashboard: https://supabase.com/dashboard (open your project, then SQL Editor)
 -- ============================================
 
 -- ============================================

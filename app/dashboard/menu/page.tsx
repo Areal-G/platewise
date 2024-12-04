@@ -2,14 +2,39 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Download, RefreshCw, FileText } from "lucide-react";
+import { Download, RefreshCw, FileText, Dice5 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { guardDemo } from "@/lib/demo";
+import { getErrorMessage } from "@/lib/errors";
 
 const menuStyles = [
     { id: "modern", name: "Modern Minimalist", description: "Clean lines, plenty of whitespace" },
     { id: "chalkboard", name: "Chalkboard", description: "Rustic cafe style on black chalkboard" },
     { id: "elegant", name: "Elegant Fine Dining", description: "Sophisticated fonts, gold accents" },
     { id: "vibrant", name: "Vibrant & Pop", description: "Bold colors, high energy" },
+];
+
+const randomMenus = [
+    {
+        name: "Punjab Grill",
+        cuisine: "North Indian",
+        items: "Butter Chicken - ₹450, Dal Makhani - ₹350, Garlic Naan - ₹80, Paneer Tikka - ₹320, Lassi - ₹120"
+    },
+    {
+        name: "Madras Cafe",
+        cuisine: "South Indian",
+        items: "Masala Dosa - ₹140, Idli Sambar - ₹90, Medu Vada - ₹100, Filter Coffee - ₹50, Rava Kesari - ₹80"
+    },
+    {
+        name: "Biryani Blues",
+        cuisine: "Hyderabadi",
+        items: "Chicken Dum Biryani - ₹350, Mutton Biryani - ₹450, Mirchi Ka Salan - ₹120, Double Ka Meetha - ₹150"
+    },
+    {
+        name: "Chaat Chatore",
+        cuisine: "Street Food",
+        items: "Pani Puri (6pcs) - ₹60, Pav Bhaji - ₹150, Aloo Tikki - ₹100, Raj Kachori - ₹140, Masala Chai - ₹40"
+    }
 ];
 
 export default function MenuMakerPage() {
@@ -20,7 +45,15 @@ export default function MenuMakerPage() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [generatedImageUrl, setGeneratedImageUrl] = useState("");
 
+    const handleSurpriseMe = () => {
+        const randomMenu = randomMenus[Math.floor(Math.random() * randomMenus.length)];
+        setRestaurantName(randomMenu.name);
+        setCuisine(randomMenu.cuisine);
+        setMenuItems(randomMenu.items);
+    };
+
     const handleGenerate = async () => {
+        if (guardDemo()) return;
         setIsGenerating(true);
         setGeneratedImageUrl("");
 
@@ -60,8 +93,8 @@ export default function MenuMakerPage() {
                 image_url: data.imageUrl,
             });
 
-        } catch (error: any) {
-            alert(error.message || "Failed to generate menu");
+        } catch (error: unknown) {
+            alert(getErrorMessage(error, "Failed to generate menu"));
         } finally {
             setIsGenerating(false);
         }
@@ -89,7 +122,18 @@ export default function MenuMakerPage() {
                     <div className="flex flex-col gap-4">
                         <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm space-y-4">
                             <div>
-                                <label className="block text-sm font-semibold text-gray-900 mb-2">Restaurant Name</label>
+                                <div className="flex justify-between items-center mb-2">
+                                    <label className="block text-sm font-semibold text-gray-900">Restaurant Name</label>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={handleSurpriseMe}
+                                        className="text-xs text-orange-600 hover:text-orange-700 hover:bg-orange-50 h-7"
+                                    >
+                                        <Dice5 className="mr-1.5 h-3.5 w-3.5" />
+                                        Surprise Me
+                                    </Button>
+                                </div>
                                 <input
                                     type="text"
                                     value={restaurantName}

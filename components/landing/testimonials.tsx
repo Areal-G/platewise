@@ -107,7 +107,7 @@ export function LandingTestimonials() {
 
               {/* Content */}
               <p className="text-gray-700 text-sm leading-relaxed mb-6">
-                "{testimonial.content}"
+                &quot;{testimonial.content}&quot;
               </p>
 
               {/* Author */}

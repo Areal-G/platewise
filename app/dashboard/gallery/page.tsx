@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { LoadError } from "@/components/dashboard/load-error";
+import { guardDemo } from "@/lib/demo";
 import { Button } from "@/components/ui/button";
 import { Download, Trash2, Eye, Loader2 } from "lucide-react";
 import { format } from "date-fns";
@@ -18,15 +21,17 @@ interface GeneratedImage {
 export default function GalleryPage() {
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedStyle, setSelectedStyle] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest");
-
-  useEffect(() => {
-    fetchImages();
-  }, [selectedStyle, sortOrder]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [stats, setStats] = useState({ total: 0, thisWeek: 0, photorealistic: 0, artistic: 0 });
+  const ITEMS_PER_PAGE = 9;
 
   const fetchImages = async () => {
     setLoading(true);
+    setLoadError(null);
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -35,9 +40,28 @@ export default function GalleryPage() {
       return;
     }
 
+    // First, fetch stats (total counts across all data)
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+
+    const [totalRes, weekRes, photoRes, artisticRes] = await Promise.all([
+      supabase.from('generated_images').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+      supabase.from('generated_images').select('*', { count: 'exact', head: true }).eq('user_id', user.id).gte('created_at', weekAgo.toISOString()),
+      supabase.from('generated_images').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('style', 'photorealistic'),
+      supabase.from('generated_images').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('style', 'artistic'),
+    ]);
+
+    setStats({
+      total: totalRes.count || 0,
+      thisWeek: weekRes.count || 0,
+      photorealistic: photoRes.count || 0,
+      artistic: artisticRes.count || 0,
+    });
+
+    // Now fetch paginated images
     let query = supabase
       .from('generated_images')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('user_id', user.id);
 
     if (selectedStyle !== 'all') {
@@ -46,15 +70,29 @@ export default function GalleryPage() {
 
     query = query.order('created_at', { ascending: sortOrder === 'oldest' });
 
-    const { data, error } = await query;
+    // Add pagination
+    const from = (page - 1) * ITEMS_PER_PAGE;
+    const to = from + ITEMS_PER_PAGE - 1;
 
-    if (data) {
+    const { data, count, error } = await query.range(from, to);
+
+    if (error) {
+      setLoadError("We couldn't fetch your images. Check your connection and try again.");
+    } else if (data) {
       setImages(data);
+      if (count) {
+        setTotalPages(Math.ceil(count / ITEMS_PER_PAGE));
+      }
     }
     setLoading(false);
   };
 
+  useEffect(() => {
+    fetchImages();
+  }, [selectedStyle, sortOrder, page]);
+
   const handleDelete = async (id: string) => {
+    if (guardDemo()) return;
     if (!confirm('Are you sure you want to delete this image?')) return;
 
     const supabase = createClient();
@@ -70,7 +108,7 @@ export default function GalleryPage() {
     }
   };
 
-  const handleDownload = (imageUrl: string, prompt: string) => {
+  const handleDownload = (imageUrl: string) => {
     window.open(imageUrl, '_blank');
   };
 
@@ -86,7 +124,7 @@ export default function GalleryPage() {
             </p>
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
-            <select 
+            <select
               value={selectedStyle}
               onChange={(e) => setSelectedStyle(e.target.value)}
               className="flex-1 sm:flex-none px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none"
@@ -97,7 +135,7 @@ export default function GalleryPage() {
               <option value="minimalist">Minimalist</option>
               <option value="rustic">Rustic</option>
             </select>
-            <select 
+            <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value)}
               className="flex-1 sm:flex-none px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none"
@@ -112,29 +150,19 @@ export default function GalleryPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <div className="bg-white rounded-lg border border-gray-200 p-3">
             <p className="text-xs text-gray-600">Total Images</p>
-            <p className="text-xl font-bold text-gray-900">{images.length}</p>
+            <p className="text-xl font-bold text-gray-900">{stats.total}</p>
           </div>
           <div className="bg-white rounded-lg border border-gray-200 p-3">
             <p className="text-xs text-gray-600">This Week</p>
-            <p className="text-xl font-bold text-gray-900">
-              {images.filter(img => {
-                const weekAgo = new Date();
-                weekAgo.setDate(weekAgo.getDate() - 7);
-                return new Date(img.created_at) > weekAgo;
-              }).length}
-            </p>
+            <p className="text-xl font-bold text-gray-900">{stats.thisWeek}</p>
           </div>
           <div className="bg-white rounded-lg border border-gray-200 p-3">
             <p className="text-xs text-gray-600">Photorealistic</p>
-            <p className="text-xl font-bold text-gray-900">
-              {images.filter(img => img.style === 'photorealistic').length}
-            </p>
+            <p className="text-xl font-bold text-gray-900">{stats.photorealistic}</p>
           </div>
           <div className="bg-white rounded-lg border border-gray-200 p-3">
             <p className="text-xs text-gray-600">Artistic</p>
-            <p className="text-xl font-bold text-gray-900">
-              {images.filter(img => img.style === 'artistic').length}
-            </p>
+            <p className="text-xl font-bold text-gray-900">{stats.artistic}</p>
           </div>
         </div>
 
@@ -143,6 +171,8 @@ export default function GalleryPage() {
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
           </div>
+        ) : loadError ? (
+          <LoadError message={loadError} onRetry={fetchImages} />
         ) : images.length === 0 ? (
           <div className="text-center py-20">
             <div className="mx-auto h-24 w-24 rounded-2xl border-4 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center mb-4">
@@ -152,8 +182,8 @@ export default function GalleryPage() {
             <p className="text-sm text-gray-600 mb-4">
               Start generating images to see them here
             </p>
-            <Button onClick={() => window.location.href = '/dashboard'}>
-              Generate Your First Image
+            <Button asChild>
+              <Link href="/dashboard/generate">Generate Your First Image</Link>
             </Button>
           </div>
         ) : (
@@ -166,9 +196,9 @@ export default function GalleryPage() {
               >
                 {/* Image */}
                 <div className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
-                  {image.image_url.startsWith('data:image') ? (
-                    <img 
-                      src={image.image_url} 
+                  {image.image_url ? (
+                    <img
+                      src={image.image_url}
                       alt={image.prompt}
                       className="w-full h-full object-cover"
                     />
@@ -194,18 +224,18 @@ export default function GalleryPage() {
 
                   {/* Actions */}
                   <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="flex-1 text-xs h-8"
-                      onClick={() => handleDownload(image.image_url, image.prompt)}
+                      onClick={() => handleDownload(image.image_url)}
                     >
                       <Download className="h-3 w-3 mr-1" />
                       Download
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="h-8 px-2 hover:bg-red-50 hover:border-red-200"
                       onClick={() => handleDelete(image.id)}
                     >
@@ -215,6 +245,29 @@ export default function GalleryPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center gap-2 mt-8">
+            <Button
+              variant="outline"
+              disabled={page === 1}
+              onClick={() => setPage(p => p - 1)}
+            >
+              Previous
+            </Button>
+            <span className="flex items-center px-4 text-sm text-gray-600">
+              Page {page} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              disabled={page === totalPages}
+              onClick={() => setPage(p => p + 1)}
+            >
+              Next
+            </Button>
           </div>
         )}
       </div>

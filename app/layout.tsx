@@ -19,7 +19,7 @@ const pacifico = Pacifico({
 });
 
 export const metadata: Metadata = {
-  title: "Platewise - AI-Powered Menu Visualization",
+  title: "Platewise - AI Design Studio for Restaurants",
   description: "Transform your menu descriptions into stunning food imagery with AI. Create professional menu visuals in seconds.",
 };
 
