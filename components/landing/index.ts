@@ -2,7 +2,6 @@
 export { LandingHero } from "./hero";
 export { ImageCarousel } from "./image-carousel";
 export { LandingHowItWorks } from "./how-it-works";
-export { LandingDemo } from "./demo";
 export { LandingFeatures } from "./features";
 export { LandingExtraFeatures } from "./extra-features";
 export { LandingProblem } from "./problem";

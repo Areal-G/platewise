@@ -4,7 +4,6 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Upload, RefreshCw, Download, Wand2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { guardDemo } from "@/lib/demo";
 import { getErrorMessage } from "@/lib/errors";
 
 export default function EnhancePage() {
@@ -29,7 +28,6 @@ export default function EnhancePage() {
     };
 
     const handleAnalyze = async () => {
-        if (guardDemo()) return;
         if (!selectedImage) return;
 
         setIsAnalyzing(true);
@@ -56,7 +54,6 @@ export default function EnhancePage() {
     };
 
     const handleGenerate = async () => {
-        if (guardDemo()) return;
         setIsGenerating(true);
         setGeneratedImageUrl("");
 

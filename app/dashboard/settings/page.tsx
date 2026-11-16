@@ -14,7 +14,6 @@ import {
   Trash2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { exitDemo, guardDemo, isDemoMode } from "@/lib/demo";
 import { signout } from "@/app/(auth)/actions";
 import type { User as AuthUser } from "@supabase/supabase-js";
 
@@ -65,7 +64,6 @@ export default function SettingsPage() {
   }, []);
 
   const handleSaveApiKey = () => {
-    if (guardDemo()) return;
     if (apiKey.trim()) {
       localStorage.setItem("gemini_api_key", apiKey.trim());
     } else {
@@ -75,14 +73,13 @@ export default function SettingsPage() {
   };
 
   const handleClearApiKey = () => {
-    if (guardDemo()) return;
     setApiKey("");
     localStorage.removeItem("gemini_api_key");
     alert("API key cleared!");
   };
 
   const handleSave = async () => {
-    if (guardDemo() || !user) return;
+    if (!user) return;
     setSaving(true);
     setSaved(false);
 
@@ -110,11 +107,6 @@ export default function SettingsPage() {
   };
 
   const handleSignOut = async () => {
-    if (isDemoMode()) {
-      exitDemo();
-      window.location.href = "/";
-      return;
-    }
     await signout();
   };
 

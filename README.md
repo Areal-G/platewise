@@ -9,7 +9,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-Postgres_+_Auth-3FCF8E?logo=supabase&logoColor=white)
 ![Gemini](https://img.shields.io/badge/Google_Gemini-AI_SDK_5-4285F4?logo=googlegemini&logoColor=white)
-![Demo](https://img.shields.io/badge/demo-guest_login-ff6a00)
+[![Live demo](https://img.shields.io/badge/demo-live-ff6a00)](https://platewise.arealjagema.com)
 
 [Features](#features) · [Design](#design) · [Screenshots](#screenshots) · [Tech stack](#tech-stack) · [Getting started](#getting-started)
 
@@ -25,10 +25,11 @@ Small restaurants need appetizing visuals for menus, delivery apps and social me
 
 Every generation is saved to a searchable gallery and logged in a history view with its status and the AI-enhanced prompt, so good results are easy to find and reuse.
 
-## Try the demo
+## Live demo
 
-- **Guest demo, no account.** Click **Try Live Demo** on the landing page. You land on the dashboard of a sample restaurant with 16 images and a full history. The demo runs in the browser with no database or API key, and every write action shows a read-only notice.
-- **Your own account.** Sign up locally (email confirmation is off in the local Supabase config). Without a Gemini key, the generators return bundled sample images that match the dish in your prompt, so every tool works end to end. Add `GOOGLE_GENERATIVE_AI_API_KEY`, or paste your own key in **Settings**, to generate real images.
+A read-only guest demo runs at **https://platewise.arealjagema.com**. It is built from the [`demo`](https://github.com/Areal-G/platewise/tree/demo) branch, which swaps Supabase for an in-memory sample restaurant so it needs no database or API key. This `main` branch is the full app.
+
+Locally, `npm run seed` fills your database with the same sample restaurant (16 images and a full history) behind a login you choose. Without a Gemini key, the generators return bundled sample images that match the dish in your prompt, so every tool works end to end. Add `GOOGLE_GENERATIVE_AI_API_KEY`, or paste your own key in **Settings**, to generate real images.
 
 ## Features
 
@@ -68,7 +69,7 @@ Each attempt is logged with its status (completed or failed), the success rate a
 - **Typography.** Geist Sans for the interface and Pacifico script for the brand accent in headlines ("Restaurant Design Studio"), loaded through `next/font`.
 - **Layout.** A fixed sidebar with icon + label navigation on desktop, generous card spacing and an image-first dashboard where recent creations are the visual focus.
 - **Responsive.** On phones the sidebar becomes a bottom tab bar and every tool stacks into a single column, as shown below.
-- **States.** Generators show a clear empty preview before the first run, a progress state while generating and a read-only notice in demo mode instead of failing silently.
+- **States.** Generators show a clear empty preview before the first run, a progress state while generating and a clear error message instead of failing silently.
 - **Light only.** The app ships a single light theme; dark mode is not implemented.
 
 ![Three phones showing the landing page, dashboard and gallery](readme/mobile.png)
@@ -77,9 +78,8 @@ Each attempt is logged with its status (completed or failed), the success rate a
 
 | | |
 | --- | --- |
-| <img src="readme/landing-top.png" width="440" alt="Landing page"><br>**Landing page.** Sign up or jump straight into the demo. | <img src="readme/tips.png" width="440" alt="Tips and guide"><br>**Tips & guide.** Prompt advice and examples for each tool. |
+| <img src="readme/landing-top.png" width="440" alt="Landing page"><br>**Landing page.** Hero, tool overview and sign-up. | <img src="readme/tips.png" width="440" alt="Tips and guide"><br>**Tips & guide.** Prompt advice and examples for each tool. |
 | <img src="readme/settings.png" width="440" alt="Settings"><br>**Settings.** Profile, account details and an optional personal Gemini key. | <img src="readme/features.png" width="440" alt="Landing feature cards"><br>**Feature cards.** The landing page stacks one card per tool as you scroll. |
-| <img src="readme/demo.png" width="440" alt="See Platewise in Action section with the demo dashboard"><br>**Live demo preview.** The landing page shows the guest dashboard with a Try Live Demo button. | |
 
 ## Tech stack
 
@@ -98,7 +98,6 @@ Each attempt is logged with its status (completed or failed), the success rate a
 flowchart LR
   subgraph Browser
     UI["Dashboard tools<br/>(client components)"]
-    DEMO["Guest demo client<br/>sample data, read-only"]
   end
   subgraph Next["Next.js 16"]
     PX["proxy.ts<br/>Supabase session refresh"]
@@ -115,20 +114,18 @@ flowchart LR
   API1 & API2 & API3 -- "key from env or x-gemini-api-key" --> G
   API1 -. "no key configured" .-> SAMPLE
   UI -- "save image + history row" --> SB
-  DEMO -. "replaces Supabase client in demo mode" .-> UI
 ```
 
 **Key decisions**
-- **One AI context per request.** `getAiContext()` resolves the signed-in user and a Gemini provider. A key sent from Settings (`x-gemini-api-key`) wins over the server key, and demo requests are refused with `403`, so the demo can never spend API credit.
+- **One AI context per request.** `getAiContext()` resolves the signed-in user and a Gemini provider. A key sent from Settings (`x-gemini-api-key`) wins over the server key.
 - **Prompt templates per asset type.** The image route wraps the user's text in a template for food, menu, poster, logo or packaging, so short inputs still produce composed, on-brand results.
 - **Runs without a key.** With no Gemini key, the routes return bundled sample images matched to the dish in the prompt, so the full flow (generate, save, gallery, history) works for local development and reviews.
-- **Guest demo in the client.** A cookie switches `createClient()` to an in-memory demo client with sample data. Every write goes through `guardDemo()`.
 - **History as an audit trail.** Each attempt writes a `generation_history` row before the call and updates it with the result, so failures are visible next to successes.
 
 ## Engineering highlights
 
 - **Authorization in two layers.** Route handlers check the Supabase user before any AI call, and Postgres Row Level Security limits every table to `auth.uid()`, so a bug in the UI can't leak another restaurant's images.
-- **Cost safety.** Demo traffic is rejected on the server, not just hidden in the UI, and users can bring their own Gemini key so the shared key isn't the only option.
+- **Cost safety.** Every AI route requires a signed-in user, and users can bring their own Gemini key so the shared key isn't the only option.
 - **Input checks.** Each route rejects a missing prompt or image with a `400` before it reaches the model.
 - **Graceful degradation.** No key, no network or a failed generation each lead to a clear state: sample images, a toast, or a failed row in History.
 - **Session handling.** `proxy.ts` refreshes the Supabase session on every request, so server components and route handlers always see a valid user.
@@ -136,15 +133,6 @@ flowchart LR
 ```ts
 // lib/ai.ts
 export async function getAiContext(req: Request) {
-  if (req.headers.get("cookie")?.includes(`${DEMO_COOKIE}=1`)) {
-    return {
-      error: Response.json(
-        { error: "Guest demo is read-only. Create a free account to generate." },
-        { status: 403 }
-      ),
-    };
-  }
-
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
@@ -162,16 +150,6 @@ export async function getAiContext(req: Request) {
   // ...
 ```
 
-```ts
-// lib/demo.ts
-// Call at the start of any action that would create, change or delete data.
-// Returns true (and shows the read-only notice) when in demo mode.
-export function guardDemo() {
-  if (!isDemoMode()) return false;
-  window.dispatchEvent(new Event(DEMO_READONLY_EVENT));
-  return true;
-}
-```
 
 ## Getting started
 
@@ -196,14 +174,20 @@ npx supabase db reset
 Create `.env.local` from the template and fill in the values printed by `npx supabase status`:
 
 ```bash
-cp env.example .env.local
+cp .env.example .env.local
+```
+
+Optionally load the sample restaurant. It needs `SUPABASE_SERVICE_ROLE_KEY` (the `service_role key` from `npx supabase status`) and signs in with `SEED_OWNER_EMAIL` / `SEED_OWNER_PASSWORD`; against a local Supabase those default to the local-only values in `supabase/seed.mjs`. Running it again updates the same rows.
+
+```bash
+npm run seed
 ```
 
 ```bash
 npm run dev
 ```
 
-Open http://localhost:3000. You should see the landing page; **Try Live Demo** opens the sample dashboard straight away.
+Open http://localhost:3000. You should see the landing page; sign up, or sign in with the seeded account to see the sample dashboard.
 
 <details>
 <summary><b>Environment variables</b></summary>
@@ -215,6 +199,8 @@ Open http://localhost:3000. You should see the landing page; **Try Live Demo** o
 | `NEXT_PUBLIC_SITE_URL` | yes | Base URL for auth redirects |
 | `GOOGLE_GENERATIVE_AI_API_KEY` | optional | Shared Gemini key. Without it, the tools return sample images. |
 | `GEMINI_TEXT_MODEL`, `GEMINI_IMAGE_MODEL` | optional | Override the default Gemini models |
+| `SUPABASE_SERVICE_ROLE_KEY` | seed only | Lets `npm run seed` create the sample account; never sent to the browser |
+| `SEED_OWNER_EMAIL`, `SEED_OWNER_PASSWORD` | seed only | Login for the seeded account; required for a hosted project, local-only defaults otherwise |
 
 </details>
 
@@ -227,6 +213,9 @@ Open http://localhost:3000. You should see the landing page; **Try Live Demo** o
 | `npm run build` | Production build |
 | `npm start` | Serve the production build |
 | `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript type check |
+| `npm test` | Unit tests (Vitest) |
+| `npm run seed` | Load the sample restaurant into Supabase |
 
 </details>
 
@@ -246,26 +235,31 @@ app/
                            logo, packaging, gallery, history, tips, settings
 components/
   landing/                 hero, carousel, features, how it works, FAQ
-  dashboard/               sidebar, mobile nav, demo banner
+  dashboard/               sidebar, mobile nav, load error state
   brand/ layout/ ui/       logo, navbar, footer, shadcn/ui primitives
 lib/
   ai.ts                    AI context, models and sample-image fallback
-  demo.ts                  guest demo cookie and read-only guard
-  supabase/                browser, server, middleware and demo clients
+  demo-images.ts           sample images returned when no Gemini key is set
+  supabase/                browser, server and middleware clients
 supabase/
   migrations/              tables, RLS policies and profile trigger
+  seed.mjs                 sample restaurant for npm run seed
 proxy.ts                   session refresh on every request
-public/dishes, features/   sample images for the demo and no-key mode
+public/dishes, features/   sample images for seed data and no-key mode
 ```
 
 </details>
 
 ## Testing & quality
 
-There is no automated test suite yet. Type checking passes:
+Unit tests cover the shared helpers; CI runs lint, type check and tests on every push.
 
 ```bash
-npx tsc --noEmit
+npm test
+```
+
+```bash
+npm run typecheck
 ```
 
 ```bash
@@ -285,5 +279,5 @@ Deploy to Vercel with a hosted Supabase project.
 - Store generated images in Supabase Storage instead of base64 data URLs in the `generated_images` table.
 - Make the no-key sample matcher prefer the dish name over shared words (a "paneer tikka masala" prompt can return the masala dosa sample).
 - Validate request bodies with schemas (Zod is installed but not used yet).
-- Add tests for the AI routes, the demo guard and the RLS policies.
+- Add tests for the AI routes and the RLS policies.
 - Per-user rate limits and usage quotas for the shared Gemini key.

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { RiGeminiLine } from "react-icons/ri";
 import {
   GiHotMeal,
@@ -12,18 +12,8 @@ import {
   GiPizzaSlice,
   GiHamburger,
 } from "react-icons/gi";
-import { useRouter } from "next/navigation";
-import { enterDemo } from "@/lib/demo";
 
 export function LandingHero() {
-  const router = useRouter();
-
-  // Drop visitors into a read-only dashboard with sample data
-  const openDemo = () => {
-    enterDemo();
-    router.push("/dashboard");
-  };
-
   return (
     <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 pt-20">
       {/* Clean background */}
@@ -74,15 +64,6 @@ export function LandingHero() {
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Button>
           </Link>
-          <Button
-            size="lg"
-            variant="outline"
-            className="h-12 gap-2 px-8 text-base font-semibold"
-            onClick={openDemo}
-          >
-            <Sparkles className="h-4 w-4" />
-            Try Live Demo
-          </Button>
         </div>
 
         {/* Trust indicators */}

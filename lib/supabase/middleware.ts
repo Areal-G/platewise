@@ -1,20 +1,11 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { DEMO_COOKIE } from '@/lib/demo'
 import { getSupabaseEnv } from '@/lib/env'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   })
-
-  // Guest demo visitors browse the dashboard with sample data, no session needed
-  if (
-    request.cookies.get(DEMO_COOKIE)?.value === '1' &&
-    request.nextUrl.pathname.startsWith('/dashboard')
-  ) {
-    return supabaseResponse
-  }
 
   // If Supabase credentials are not configured, allow public pages to work
   const supabaseEnv = getSupabaseEnv()

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download, RefreshCw, FileText, Dice5 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { guardDemo } from "@/lib/demo";
 import { getErrorMessage } from "@/lib/errors";
 
 const menuStyles = [
@@ -53,7 +52,6 @@ export default function MenuMakerPage() {
     };
 
     const handleGenerate = async () => {
-        if (guardDemo()) return;
         setIsGenerating(true);
         setGeneratedImageUrl("");
 

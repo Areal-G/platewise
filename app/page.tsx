@@ -3,7 +3,6 @@ import {
   LandingHero,
   ImageCarousel,
   LandingHowItWorks,
-  LandingDemo,
   LandingFeatures,
   LandingExtraFeatures,
   LandingProblem,
@@ -21,7 +20,6 @@ export default function Home() {
         <ImageCarousel />
         <LandingFeatures />
         <LandingHowItWorks />
-        <LandingDemo />
         <LandingExtraFeatures />
         <LandingProblem />
         <LandingTestimonials />

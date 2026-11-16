@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download, RefreshCw, Megaphone, Dice5 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { guardDemo } from "@/lib/demo";
 import { getErrorMessage } from "@/lib/errors";
 
 const posterThemes = [
@@ -52,7 +51,6 @@ export default function PosterMakerPage() {
     };
 
     const handleGenerate = async () => {
-        if (guardDemo()) return;
         setIsGenerating(true);
         setGeneratedImageUrl("");
 

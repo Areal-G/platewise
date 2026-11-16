@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { LoadError } from "@/components/dashboard/load-error";
-import { guardDemo } from "@/lib/demo";
 import { Button } from "@/components/ui/button";
 import { Download, Trash2, Eye, Loader2 } from "lucide-react";
 import { format } from "date-fns";
@@ -92,7 +91,6 @@ export default function GalleryPage() {
   }, [selectedStyle, sortOrder, page]);
 
   const handleDelete = async (id: string) => {
-    if (guardDemo()) return;
     if (!confirm('Are you sure you want to delete this image?')) return;
 
     const supabase = createClient();

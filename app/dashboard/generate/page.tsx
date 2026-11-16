@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Wand2, Download, RefreshCw, Dice5, Camera } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { guardDemo } from "@/lib/demo";
 import { getErrorMessage } from "@/lib/errors";
 
 const stylePresets = [
@@ -60,7 +59,6 @@ export default function FoodGeneratorPage() {
   };
 
   const handleEnhancePrompt = async () => {
-    if (guardDemo()) return;
     setIsEnhancing(true);
     try {
       // Get user's API key from localStorage
@@ -96,7 +94,6 @@ export default function FoodGeneratorPage() {
   };
 
   const handleGenerate = async () => {
-    if (guardDemo()) return;
     setIsGenerating(true);
     setGeneratedImageUrl(""); // Clear previous image
 

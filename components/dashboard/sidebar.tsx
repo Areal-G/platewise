@@ -20,7 +20,6 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { signout } from "@/app/(auth)/actions";
-import { exitDemo, isDemoMode } from "@/lib/demo";
 import type { User } from "@supabase/supabase-js";
 
 const navigation = [
@@ -55,11 +54,6 @@ export function Sidebar() {
   }, []);
 
   const handleSignOut = async () => {
-    if (isDemoMode()) {
-      exitDemo();
-      window.location.href = "/";
-      return;
-    }
     await signout();
   };
 
