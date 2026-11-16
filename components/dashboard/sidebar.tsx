@@ -21,7 +21,7 @@ import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { signout } from "@/app/(auth)/actions";
 import { exitDemo, isDemoMode } from "@/lib/demo";
-import type { User } from "@supabase/supabase-js";
+import type { User } from "@/lib/supabase/demo-client";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },

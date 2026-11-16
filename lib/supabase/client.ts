@@ -1,14 +1,8 @@
-import { createBrowserClient } from '@supabase/ssr'
-import { isDemoMode } from '@/lib/demo'
+import { exitDemo, isDemoMode } from '@/lib/demo'
 import { createDemoClient } from './demo-client'
-import { requireSupabaseEnv } from '@/lib/env'
 
+// The portfolio demo has no backend: the guest demo cookie is the session and
+// the data is the in-memory sample restaurant.
 export function createClient() {
-  // Guest demo: serve read-only sample data instead of the real database
-  if (isDemoMode()) {
-    return createDemoClient() as unknown as ReturnType<typeof createBrowserClient>
-  }
-
-  const { url, anonKey } = requireSupabaseEnv()
-  return createBrowserClient(url, anonKey)
+  return createDemoClient({ isSignedIn: isDemoMode, signOut: exitDemo })
 }

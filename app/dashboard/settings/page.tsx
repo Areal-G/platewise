@@ -16,7 +16,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { exitDemo, guardDemo, isDemoMode } from "@/lib/demo";
 import { signout } from "@/app/(auth)/actions";
-import type { User as AuthUser } from "@supabase/supabase-js";
+import type { User as AuthUser } from "@/lib/supabase/demo-client";
 
 export default function SettingsPage() {
   const [user, setUser] = useState<AuthUser | null>(null);

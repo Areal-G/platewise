@@ -9,13 +9,15 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-Postgres_+_Auth-3FCF8E?logo=supabase&logoColor=white)
 ![Gemini](https://img.shields.io/badge/Google_Gemini-AI_SDK_5-4285F4?logo=googlegemini&logoColor=white)
-![Demo](https://img.shields.io/badge/demo-guest_login-ff6a00)
+[![Live demo](https://img.shields.io/badge/demo-live-ff6a00)](https://platewise.arealjagema.com)
 
 [Features](#features) · [Design](#design) · [Screenshots](#screenshots) · [Tech stack](#tech-stack) · [Getting started](#getting-started)
 
 </div>
 
 <br>
+
+> **This is the `demo` branch**, the portfolio build behind **https://platewise.arealjagema.com**. It runs with no database, no Supabase project and no API keys: the Supabase client is replaced by an in-memory sample restaurant. The full app with Supabase lives on [`main`](https://github.com/Areal-G/platewise/tree/main).
 
 ![Platewise dashboard in a browser with the mobile landing page beside it](readme/hero.png)
 
@@ -27,8 +29,7 @@ Every generation is saved to a searchable gallery and logged in a history view w
 
 ## Try the demo
 
-- **Guest demo, no account.** Click **Try Live Demo** on the landing page. You land on the dashboard of a sample restaurant with 16 images and a full history. The demo runs in the browser with no database or API key, and every write action shows a read-only notice.
-- **Your own account.** Sign up locally (email confirmation is off in the local Supabase config). Without a Gemini key, the generators return bundled sample images that match the dish in your prompt, so every tool works end to end. Add `GOOGLE_GENERATIVE_AI_API_KEY`, or paste your own key in **Settings**, to generate real images.
+Click **Try Live Demo** on the landing page. You land on the dashboard of a sample restaurant with 16 images and a full history. Every write action (generate, enhance, delete, save) shows a read-only notice. Email and Google sign-in and sign-up are turned off on this branch and say so; accounts need the `main` branch with Supabase.
 
 ## Features
 
@@ -89,7 +90,7 @@ Each attempt is logged with its status (completed or failed), the success rate a
 | Language | TypeScript 5.9 | Shared types across routes, Supabase rows and UI |
 | Styling | Tailwind CSS 4.1, shadcn/ui, Radix primitives | Accessible primitives with a custom brand layer |
 | AI | Vercel AI SDK 5 with `@ai-sdk/google` 2 | One API for Gemini text and image models, easy to swap models |
-| Data and auth | Supabase (PostgreSQL, Auth), `@supabase/ssr` 0.7 | Auth, Postgres and RLS in one service, with cookie sessions for SSR |
+| Data and auth | Supabase (PostgreSQL, Auth) on `main`; an in-memory client on this branch | Auth, Postgres and RLS in one service, with cookie sessions for SSR |
 | UI extras | Embla Carousel 8, date-fns, lucide-react | Landing carousels, date formatting, icons |
 
 ## Architecture
@@ -122,7 +123,7 @@ flowchart LR
 - **One AI context per request.** `getAiContext()` resolves the signed-in user and a Gemini provider. A key sent from Settings (`x-gemini-api-key`) wins over the server key, and demo requests are refused with `403`, so the demo can never spend API credit.
 - **Prompt templates per asset type.** The image route wraps the user's text in a template for food, menu, poster, logo or packaging, so short inputs still produce composed, on-brand results.
 - **Runs without a key.** With no Gemini key, the routes return bundled sample images matched to the dish in the prompt, so the full flow (generate, save, gallery, history) works for local development and reviews.
-- **Guest demo in the client.** A cookie switches `createClient()` to an in-memory demo client with sample data. Every write goes through `guardDemo()`.
+- **In-memory backend on this branch.** `lib/supabase/client.ts` and `server.ts` keep their `createClient()` API but return `createDemoClient()`, a read-only stand-in for the Supabase query builder and auth over the sample rows in `lib/supabase/demo-data.ts`. The guest demo cookie is the only session. Row IDs are fixed and timestamps are anchored to the current UTC day, so every serverless instance serves identical data. Every write goes through `guardDemo()`.
 - **History as an audit trail.** Each attempt writes a `generation_history` row before the call and updates it with the result, so failures are visible next to successes.
 
 ## Engineering highlights
@@ -131,7 +132,7 @@ flowchart LR
 - **Cost safety.** Demo traffic is rejected on the server, not just hidden in the UI, and users can bring their own Gemini key so the shared key isn't the only option.
 - **Input checks.** Each route rejects a missing prompt or image with a `400` before it reaches the model.
 - **Graceful degradation.** No key, no network or a failed generation each lead to a clear state: sample images, a toast, or a failed row in History.
-- **Session handling.** `proxy.ts` refreshes the Supabase session on every request, so server components and route handlers always see a valid user.
+- **Session handling.** On `main`, `proxy.ts` refreshes the Supabase session on every request; on this branch it lets only guest demo visitors into the dashboard.
 
 ```ts
 // lib/ai.ts
@@ -175,46 +176,29 @@ export function guardDemo() {
 
 ## Getting started
 
-**Prerequisites:** Node.js 20 or newer and npm, Docker for the local Supabase stack, and optionally a Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey).
+**Prerequisites:** Node.js 22 or newer and npm. No database, Docker or API key.
 
 ```bash
-git clone <your-fork-url> platewise
+git clone -b demo <your-fork-url> platewise
 cd platewise
 npm install
-```
-
-Start Supabase locally and apply the schema in `supabase/migrations`:
-
-```bash
-npx supabase start
-```
-
-```bash
-npx supabase db reset
-```
-
-Create `.env.local` from the template and fill in the values printed by `npx supabase status`:
-
-```bash
-cp env.example .env.local
 ```
 
 ```bash
 npm run dev
 ```
 
-Open http://localhost:3000. You should see the landing page; **Try Live Demo** opens the sample dashboard straight away.
+Open http://localhost:3000. You should see the landing page; **Try Live Demo** opens the sample dashboard straight away. No `.env.local` is needed.
 
 <details>
 <summary><b>Environment variables</b></summary>
 
+None are required on this branch; `.env.example` lists the optional ones.
+
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | yes | Supabase API URL (local: `http://127.0.0.1:54321`) |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | yes | Supabase anon key, protected by RLS |
-| `NEXT_PUBLIC_SITE_URL` | yes | Base URL for auth redirects |
-| `GOOGLE_GENERATIVE_AI_API_KEY` | optional | Shared Gemini key. Without it, the tools return sample images. |
-| `GEMINI_TEXT_MODEL`, `GEMINI_IMAGE_MODEL` | optional | Override the default Gemini models |
+| `NEXT_PUBLIC_SITE_URL` | optional | Base URL for auth redirect links (set in `netlify.toml`) |
+| `GOOGLE_GENERATIVE_AI_API_KEY`, `GEMINI_TEXT_MODEL`, `GEMINI_IMAGE_MODEL` | unused | Read by the AI routes, which refuse guest demo requests, so the demo never calls Gemini |
 
 </details>
 
@@ -227,6 +211,8 @@ Open http://localhost:3000. You should see the landing page; **Try Live Demo** o
 | `npm run build` | Production build |
 | `npm start` | Serve the production build |
 | `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript type check |
+| `npm test` | Unit tests (Vitest), including the in-memory client |
 
 </details>
 
@@ -251,10 +237,10 @@ components/
 lib/
   ai.ts                    AI context, models and sample-image fallback
   demo.ts                  guest demo cookie and read-only guard
-  supabase/                browser, server, middleware and demo clients
-supabase/
-  migrations/              tables, RLS policies and profile trigger
-proxy.ts                   session refresh on every request
+  supabase/                createClient() for browser and server, backed by
+                           the in-memory demo client and sample data
+proxy.ts                   sends visitors without the demo cookie to /login
+netlify.toml               Netlify build settings for the live demo
 public/dishes, features/   sample images for the demo and no-key mode
 ```
 
@@ -262,10 +248,14 @@ public/dishes, features/   sample images for the demo and no-key mode
 
 ## Testing & quality
 
-There is no automated test suite yet. Type checking passes:
+Unit tests cover the in-memory client (the queries the dashboard runs, read-only writes, auth and deterministic data) and the shared helpers.
 
 ```bash
-npx tsc --noEmit
+npm test
+```
+
+```bash
+npm run typecheck
 ```
 
 ```bash
@@ -274,11 +264,7 @@ npm run lint
 
 ## Deployment
 
-Deploy to Vercel with a hosted Supabase project.
-
-1. Create a Supabase project, link it (`npx supabase link --project-ref <ref>`) and run `npx supabase db push`.
-2. Under Authentication → URL Configuration, set the Site URL and add `https://<your-domain>/**` to the redirect URLs. Enable the Google provider if you want Google sign-in.
-3. Import the repository in Vercel and set the environment variables above, with `NEXT_PUBLIC_SITE_URL=https://<your-domain>`.
+The live demo deploys this branch to Netlify. `netlify.toml` sets the build command (`npm run build`), the `.next` publish directory, Node 22 and `NEXT_PUBLIC_SITE_URL`; Netlify's Next.js runtime handles the rest. No environment variables or services need to be configured. To deploy the full app with Supabase, use the `main` branch.
 
 ## Roadmap
 

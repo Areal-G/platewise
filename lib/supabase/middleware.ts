@@ -1,105 +1,31 @@
-import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { DEMO_COOKIE } from '@/lib/demo'
-import { getSupabaseEnv } from '@/lib/env'
 
+const PUBLIC_PATHS = [
+  '/login',
+  '/signup',
+  '/terms-of-service',
+  '/privacy-policy',
+  '/api',
+  '/_next',
+  '/auth',
+]
+
+// The guest demo cookie is the only session: it opens the dashboard, every
+// other protected page goes to the login page.
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
+  const { pathname } = request.nextUrl
 
-  // Guest demo visitors browse the dashboard with sample data, no session needed
   if (
-    request.cookies.get(DEMO_COOKIE)?.value === '1' &&
-    request.nextUrl.pathname.startsWith('/dashboard')
+    pathname === '/' ||
+    PUBLIC_PATHS.some((path) => pathname.startsWith(path)) ||
+    (request.cookies.get(DEMO_COOKIE)?.value === '1' &&
+      pathname.startsWith('/dashboard'))
   ) {
-    return supabaseResponse
+    return NextResponse.next({ request })
   }
 
-  // If Supabase credentials are not configured, allow public pages to work
-  const supabaseEnv = getSupabaseEnv()
-  if (!supabaseEnv) {
-    // Only allow access to public pages (landing, login, signup, legal pages)
-    if (
-      request.nextUrl.pathname === '/' ||
-      request.nextUrl.pathname.startsWith('/login') ||
-      request.nextUrl.pathname.startsWith('/signup') ||
-      request.nextUrl.pathname.startsWith('/terms-of-service') ||
-      request.nextUrl.pathname.startsWith('/privacy-policy') ||
-      request.nextUrl.pathname.startsWith('/api') ||
-      request.nextUrl.pathname.startsWith('/_next') ||
-      request.nextUrl.pathname.startsWith('/auth')
-    ) {
-      return supabaseResponse
-    }
-    // Redirect protected pages to login
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
-  }
-
-  const supabase = createServerClient(
-    supabaseEnv.url,
-    supabaseEnv.anonKey,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
-          })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
-
-  // IMPORTANT: Avoid writing any logic between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  // Don't redirect if there's an auth code (OAuth callback)
-  const code = request.nextUrl.searchParams.get('code')
-  
-  if (
-    !user &&
-    !code &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/signup') &&
-    !request.nextUrl.pathname.startsWith('/terms-of-service') &&
-    !request.nextUrl.pathname.startsWith('/privacy-policy') &&
-    !request.nextUrl.pathname.startsWith('/api') &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    request.nextUrl.pathname !== '/'
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
-  }
-
-  // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
-  // creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
-  // 4. Finally:
-  //    return myNewResponse
-  // If this is not done, you may be causing the browser and server to go out
-  // of sync and terminate the user's session prematurely.
-
-  return supabaseResponse
+  const url = request.nextUrl.clone()
+  url.pathname = '/login'
+  return NextResponse.redirect(url)
 }
-
