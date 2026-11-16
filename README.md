@@ -5,10 +5,10 @@
 **An AI design studio for restaurants: food photos, menus, posters, logos and packaging from one line of text.**
 
 ![Next.js](https://img.shields.io/badge/Next.js-16.4-000000?logo=nextdotjs&logoColor=white)
-![React](https://img.shields.io/badge/React-19.2-149ECA?logo=react&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React-19.3-149ECA?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?logo=typescript&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-Postgres_+_Auth-3FCF8E?logo=supabase&logoColor=white)
-![Gemini](https://img.shields.io/badge/Google_Gemini-AI_SDK_5-4285F4?logo=googlegemini&logoColor=white)
+![Gemini](https://img.shields.io/badge/Google_Gemini-AI_SDK_7-4285F4?logo=googlegemini&logoColor=white)
 [![Live demo](https://img.shields.io/badge/demo-live-ff6a00)](https://platewise.arealjagema.com)
 
 [Features](#features) · [Design](#design) · [Screenshots](#screenshots) · [Tech stack](#tech-stack) · [Getting started](#getting-started)
@@ -85,11 +85,11 @@ Each attempt is logged with its status (completed or failed), the success rate a
 
 | Layer | Technology | Why |
 | --- | --- | --- |
-| Framework | Next.js 16.4 (App Router, Turbopack), React 19.2 | Server route handlers for AI calls next to a client-heavy dashboard |
-| Language | TypeScript 5.9 | Shared types across routes, Supabase rows and UI |
-| Styling | Tailwind CSS 4.1, shadcn/ui, Radix primitives | Accessible primitives with a custom brand layer |
-| AI | Vercel AI SDK 5 with `@ai-sdk/google` 2 | One API for Gemini text and image models, easy to swap models |
-| Data and auth | Supabase (PostgreSQL, Auth), `@supabase/ssr` 0.7 | Auth, Postgres and RLS in one service, with cookie sessions for SSR |
+| Framework | Next.js 16.4 (App Router, Turbopack), React 19.3 | Server route handlers for AI calls next to a client-heavy dashboard |
+| Language | TypeScript 6.0 | Shared types across routes, Supabase rows and UI |
+| Styling | Tailwind CSS 4.3, shadcn/ui, Radix primitives | Accessible primitives with a custom brand layer |
+| AI | Vercel AI SDK 7 with `@ai-sdk/google` 4 | One API for Gemini text and image models, easy to swap models |
+| Data and auth | Supabase (PostgreSQL, Auth), `@supabase/ssr` 0.12 | Auth, Postgres and RLS in one service, with cookie sessions for SSR |
 | UI extras | Embla Carousel 8, date-fns, lucide-react | Landing carousels, date formatting, icons |
 
 ## Architecture
@@ -153,7 +153,7 @@ export async function getAiContext(req: Request) {
 
 ## Getting started
 
-**Prerequisites:** Node.js 20 or newer and npm, Docker for the local Supabase stack, and optionally a Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey).
+**Prerequisites:** Node.js 22 or newer and npm, Docker for the local Supabase stack, and optionally a Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey).
 
 ```bash
 git clone <your-fork-url> platewise
